@@ -45,8 +45,20 @@ def rankName(rankInfo):
         tier = "GM"
         rank = ""
     return (str)(tier + rank + " " + LP)
+
+class Person:
+    
+    def __init__(self, name, sNames, placed, pos, hPos):
+        self.dict = {}
+        self.dict["name"] = name        #real name
+        self.dict["sNames"] = sNames    #summoner name(s)
+        self.dict["placed"] = placed    #boolean (have they placed before or not)
+        self.dict["pos"] = pos          #current leaderboard position
+        self.dict["hPos"] = hPos        #highest leaderboard position held
+    
             
 #https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/CrusherCake?api_key=RGAPI-f5ccdc31-e6fd-4063-b4a8-37a73b33b237
+leaderboard = []
 for name in name_to_summ:
     highAcc = ""
     highRank = ""
@@ -59,4 +71,6 @@ for name in name_to_summ:
             highAcc = summ
             highRank = rankName(rankInfo)
             highScore = score
+    for person in leaderboard:
+        if(person)
     print(name + ": " + highAcc + ": " + highRank)
