@@ -8,7 +8,7 @@ Created on Sat May 18 16:17:16 2019
 import requests
 import json
 
-api_key = "RGAPI-a21b92ca-d935-48f6-ad4b-8a3dcc828655"
+api_key = "RGAPI-b485301f-cc66-4700-aeb4-d4241ce919ff"
 name_to_summ = {     "Ahir":["CrusherCake","Drunk Skeleton"],
                      "Andy":["Lolicept","Yuaru"],
                      "Austin":["GG EVOS NO RE"],
@@ -25,7 +25,8 @@ name_to_summ = {     "Ahir":["CrusherCake","Drunk Skeleton"],
                      "Paul":["DDUˉDU DDUˉDU"],
                      "Raymond":["iee jong seok"],
                      "Shubham":["horsecatsmart"],
-                     "Ty":["Elementilist","tarzaned5"]
+                     "Ty":["Elementilist"],
+                     "Vincent":["BobChuckyJoe"]
                 }
 tiers = ["IRON","BRONZE","SILVER","GOLD","PLATINUM","DIAMOND","MASTER","GRANDMASTER","CHALLENGER"]
 ranks = ["IV","III","II","I"]
@@ -71,6 +72,6 @@ for name in name_to_summ:
             highAcc = summ
             highRank = rankName(rankInfo)
             highScore = score
-    for person in leaderboard:
-        if(person)
+    #for person in leaderboard:
+    #    if(person)
     print(name + ": " + highAcc + ": " + highRank)
