@@ -101,8 +101,10 @@ def scrapePBData():
 def createCStats(players):
     cStats = []
     for player in players:
-        name = player.find('div',attrs={"class" : "champion-nameplate-name"}).text[1:]
+        name = player.find('div',attrs={"class" : "champion-nameplate-name"}).text
+        name = name[1:len(name)-1]
         cStats.append({"champion":name})
+    return cStats
 
 def scrapeChampData():
     region = input("Enter region to scrape (i.e. LCS, LEC, LCK, LPL): ")
@@ -117,7 +119,7 @@ def scrapeChampData():
 def scrapeMHData():
     PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
     DRIVER_BIN = os.path.join(PROJECT_ROOT, "chromedriver")
-    url = "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3061707090/42251275?tab=stats"#input("Enter url: ")
+    url = input("Enter url: ")
     driver = webdriver.Chrome(executable_path = DRIVER_BIN)
     driver.get(url)
     time.sleep(3)
@@ -141,14 +143,22 @@ def scrapeMHData():
     
     rows = stats.findAll('tr')
     for row in rows:
-        if(row.has_attr("class") and not row["class"] == "view"):
+        if(row.has_attr("class") and not row["class"][0] == "view" and not row["class"][0] == "grid-header-row"):
             data = row.findAll('td')
+            i = 0
+            statName = ""
             for d in data:
-                if(d.has_attr("class") and d["class"] == "grid-label"):
-                    print()
-                print(d.text)
+                #if(d.has_attr("class") and d["class"][0] == "grid-label"):
+                    #print()
+                #print(d.text)
+                if(statName == ""):
+                    statName = d.text
+                else:
+                    cStats[i][statName] = d.text
+                    i += 1
     
     driver.close()
+    return cStats
 
 def writeSheet(champDict):
     wb = xlwt.Workbook()
@@ -162,7 +172,14 @@ def writeSheet(champDict):
     wb.save("Stats.xls")
         
 def main():
-    champDict = scrapeMHData()
+    cStats = scrapeMHData()
+    for champ in cStats:
+        champ["player"] = input("Who played " + champ["champion"] + "? ")
+    
+    print()
+    
+    for champ in cStats:
+        print(champ["champion"] + " played by " + champ["player"])
     #writeSheet(champDict)
     
 if __name__ == '__main__':
