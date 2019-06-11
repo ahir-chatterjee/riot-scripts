@@ -8,7 +8,7 @@ Created on Sat May 18 16:17:16 2019
 import requests
 import json
 
-api_key = "RGAPI-b485301f-cc66-4700-aeb4-d4241ce919ff"
+api_key = "RGAPI-f3d64d58-f6bf-41d4-84e0-2daff4607cc6"
 name_to_summ = {     "Ahir":["CrusherCake","Drunk Skeleton"],
                      "Andy":["Lolicept","Yuaru"],
                      "Austin":["GG EVOS NO RE"],
@@ -21,10 +21,12 @@ name_to_summ = {     "Ahir":["CrusherCake","Drunk Skeleton"],
                      "Isaac":["Pursin"],
                      "James":["lickitloveit","CeIsius"],
                      "Jonathan":["YellowBumbleBee"],
+                     "Louis":["FobAsian"],
                      "Mason":["mello mental","keep it mello","Melllo"],
                      "Paul":["DDUˉDU DDUˉDU"],
                      "Raymond":["iee jong seok"],
                      "Shubham":["horsecatsmart"],
+                     "Spencer":["recneps"],
                      "Ty":["Elementilist"],
                      "Vincent":["BobChuckyJoe"]
                 }
