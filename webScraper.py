@@ -11,6 +11,8 @@ import requests
 import json
 import os
 import xlwt
+from selenium import webdriver
+import time
 
 def loadFile(fileName):
     tempStr = ""
@@ -96,6 +98,12 @@ def scrapePBData():
     print((str)(len(validRows)) + " games")
     return champDict
 
+def createCStats(players):
+    cStats = []
+    for player in players:
+        name = player.find('div',attrs={"class" : "champion-nameplate-name"}).text[1:]
+        cStats.append({"champion":name})
+
 def scrapeChampData():
     region = input("Enter region to scrape (i.e. LCS, LEC, LCK, LPL): ")
     validWeeks = input("Enter valid weeks (i.e 1, 2, 3): ").split(", ")
@@ -105,6 +113,42 @@ def scrapeChampData():
     
     table = content.find('table', attrs={"class": "wikitable"})
     print(table)
+    
+def scrapeMHData():
+    PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+    DRIVER_BIN = os.path.join(PROJECT_ROOT, "chromedriver")
+    url = "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3061707090/42251275?tab=stats"#input("Enter url: ")
+    driver = webdriver.Chrome(executable_path = DRIVER_BIN)
+    driver.get(url)
+    time.sleep(3)
+    
+    content = BeautifulSoup(driver.page_source,"html.parser")
+    scoreboard = content.find('div',attrs={"class" : "gs-container gs-no-gutter"})
+    stats = content.find('table',attrs={"class" : "table table-bordered"})
+    players = scoreboard.findAll('li')
+    
+    cStats = createCStats(players)
+    
+#    headerRow = stats.find('tr',attrs={"class" : "grid-header-row"})
+#    data = headerRow.findAll('td')
+#    for d in data:
+#        #print(d)
+#        div = d.find('div')
+#        div = div.find('div')
+#        if(div is not None):
+#            div = div.find('div')
+#            print(div["data-rg-id"])
+    
+    rows = stats.findAll('tr')
+    for row in rows:
+        if(row.has_attr("class") and not row["class"] == "view"):
+            data = row.findAll('td')
+            for d in data:
+                if(d.has_attr("class") and d["class"] == "grid-label"):
+                    print()
+                print(d.text)
+    
+    driver.close()
 
 def writeSheet(champDict):
     wb = xlwt.Workbook()
@@ -118,8 +162,8 @@ def writeSheet(champDict):
     wb.save("Stats.xls")
         
 def main():
-    champDict = scrapePBData()
-    writeSheet(champDict)
+    champDict = scrapeMHData()
+    #writeSheet(champDict)
     
 if __name__ == '__main__':
     main()
