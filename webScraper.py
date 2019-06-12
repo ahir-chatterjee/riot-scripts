@@ -25,11 +25,10 @@ def loadFile(fileName):
             tempList = json.loads(tempStr)
     return tempList
 
-def saveInfo(fileName, data, version):
+def saveInfo(fileName, data):
     wrapperList = []
     with open(fileName,'w') as outfile:
         #for obj in data:
-        wrapperList.append(version)
         wrapperList.append(data)
         json.dump(wrapperList,outfile)
         print(fileName + " saved successfully.")
@@ -180,6 +179,15 @@ def main():
     
     for champ in cStats:
         print(champ["champion"] + " played by " + champ["player"])
+        
+    print()
+    saveInfo("output.json",cStats)
+    print()
+    
+    for player in cStats:
+        for stat in player:
+            print(stat + ": " + player[stat])
+        print()
     #writeSheet(champDict)
     
 if __name__ == '__main__':
