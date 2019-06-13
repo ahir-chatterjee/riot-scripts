@@ -31,7 +31,7 @@ def saveInfo(fileName, data, version):
         json.dump(wrapperList,outfile)
         print(fileName + " saved successfully.")
 
-api_key = "?api_key=" + "RGAPI-ea84a7a7-23e9-4d37-8a86-9a94bae78a88"
+api_key = "?api_key=" + "RGAPI-ba489987-6fdd-4439-8a6d-cb212ee56a29"
 
 versionInfo = json.loads(requests.get("https://ddragon.leagueoflegends.com/realms/na.json" + api_key).text)["n"]
 champVersion = versionInfo["champion"]
@@ -205,7 +205,7 @@ def downloadGames():
     while(not accInput.upper() == "N"):
         accounts.append((str)(accInput))
         accInput = input("Any other summoner to download? ")
-    season = (int)(input("Enter season to track: " )) + 3
+    season = (int)(input("Enter season to track: " )) + 4
     lastTime = time.time()
     for summName in accounts:
         accountId = json.loads(requests.get("https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summName + api_key).text)["accountId"]
@@ -214,7 +214,7 @@ def downloadGames():
         matchesList = []
         #print(loadedInfo[0], season)
         if((str)(loadedInfo[0]) != (str)(season)):
-            print("Games for " + summName + " not previously downloaded for season " + (str)(season-3) + ".")
+            print("Games for " + summName + " not previously downloaded for season " + (str)(season-4) + ".")
         else:
             matchesList = loadedInfo[1]
             lastGameId = matchesList[0]["gameId"]
@@ -224,7 +224,8 @@ def downloadGames():
         rateLimit = 120
         shortInterval = 5
         queries = "&queue=420"
-        matches = json.loads(requests.get("https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" + accountId + api_key + queries).text)    
+        matches = json.loads(requests.get("https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/" + accountId + api_key + queries).text) 
+        #print(matches)
         totalGames = matches["totalGames"]
         while(count <= limit and count <= totalGames):
             index = count-constant
@@ -271,7 +272,8 @@ def downloadGames():
     return gamesList
     
 def findFingerprint(summonerID):
-    season = 8
+    #loads summoner name games that were already downloaded
+    season = 10
     lane = ""#input("Enter lane to check: ").upper()
     smurf = input("Enter smurf to check: ")
     saccountInfo = json.loads(requests.get("https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + smurf + api_key).text)
@@ -285,32 +287,38 @@ def findFingerprint(summonerID):
     if(loadedInfo[0] != season+3):
         print("Games for " + smurf + " not previously downloaded for season " + (str)(season) + ".")
         return
+    
     uniqueItems = {}
     itemSlots = [[],[],[],[],[],[],[]]
     flashD = 0
     flashF = 0
     matchesChecked = 0
-    #totalGames = 0
     for match in matchesList:
         matchesChecked += 1
         pID = 0
+        #find summoner's participantId in this game
         for p in match["participantIdentities"]:
             if p["player"]["summonerId"] == ssummonerId:
                 print("0% chance accounts are related, played in the same game.")
                 return
             if p["player"]["summonerId"] == summonerID:
                 pID = p["participantId"]
+                
+        #count flash's on whatever key
         if(match["participants"][pID-1]["spell1Id"] == 4):
             flashD += 1
         elif(match["participants"][pID-1]["spell2Id"] == 4):
             flashF += 1
+            
+        #gather item data for all the items in the inventory
         for p in match["participants"]:
             if(p["participantId"] == pID):
                 for num in range(0,7):
-                    uniqueItems[p["stats"]["item"+(str)(num)]] = 1
-                    itemSlots[num].append(p["stats"]["item"+(str)(num)])
-                #if(p["timeline"]["lane"] == lane):
-                    #totalGames += 1 
+                    itemName = p["stats"]["item"+(str)(num)]
+                    uniqueItems[itemName] = 1
+                    itemSlots[num].append(itemName)
+                    
+    #repeat above process for suspected smurf account
     matchesList = loadedInfo[1]
     summonerID = ssummonerId
     suniqueItems = {}
@@ -318,7 +326,7 @@ def findFingerprint(summonerID):
     sflashD = 0
     sflashF = 0
     smatchesChecked = 0
-    #totalGames = 0
+    
     for match in matchesList:
         smatchesChecked += 1
         pID = 0
@@ -334,25 +342,36 @@ def findFingerprint(summonerID):
                 for num in range(0,7):
                     suniqueItems[p["stats"]["item"+(str)(num)]] = 1
                     sitemSlots[num].append(p["stats"]["item"+(str)(num)])
-    #print(flashD,flashF,sflashD,sflashF)
+                    
+    print(flashD,flashF,sflashD,sflashF)
+    
+    #check flashes
     flashSame = True
     if(not ((flashD > flashF and sflashD > sflashF) or (flashD < flashF and sflashD < sflashF))):
         flashSame = False
         print("Flash different.")
+        
     itemsMatrix = {}
     sitemsMatrix = {}
+    
     for item in uniqueItems:
         if((str)(item) in itemInfo["data"]):
+            #check only active items for keybinding
             if("Active" in itemInfo["data"][(str)(item)]["tags"]):
+                #track how often the item goes into a certain inventory slot
                 itemName = itemInfo["data"][(str)(item)]["name"]
                 itemsMatrix[itemName] = [0,0,0,0,0,0,0,0]
                 for num in range(0,7):
                     for oItem in itemSlots[num]:
+                        #if we found the item in a slot, increase that slot and the total by one
                         if(item == oItem):
                             itemsMatrix[itemName][num] += 1
                             itemsMatrix[itemName][7] += 1
                 for num in range(0,7):
+                    #divide by total times item is bought to create percentages
                     itemsMatrix[itemName][num] = itemsMatrix[itemName][num]/itemsMatrix[itemName][7]
+                    
+    #repeat above process for smurf account
     for item in suniqueItems:
         if((str)(item) in itemInfo["data"]):
             if("Active" in itemInfo["data"][(str)(item)]["tags"]):
@@ -365,6 +384,8 @@ def findFingerprint(summonerID):
                             sitemsMatrix[itemName][7] += 1
                 for num in range(0,7):
                     sitemsMatrix[itemName][num] = sitemsMatrix[itemName][num]/sitemsMatrix[itemName][7]
+                    
+    #check trinkets
     trinkets = ["Oracle Lens","Warding Totem (Trinket)","Farsight Alteration"]
     trinketRanks = {}
     strinketRanks = {}
@@ -375,9 +396,13 @@ def findFingerprint(summonerID):
     if(not (trinketRanks[max(trinketRanks)] == strinketRanks[max(strinketRanks)] and trinketRanks[min(trinketRanks)] == strinketRanks[min(strinketRanks)])):
         trinketsSame = False
         print("Trinkets are different.")
+        
+    #variables that need to be tuned
     sampleSizeLimit = 11
-    highLimit = .685
+    highLimit = .68
     lowLimit = .12
+    #variables that need to be tuned
+    
     itemsDifferent = []
     itemsBadlyDifferent = []
     matchingItems = []
@@ -587,9 +612,9 @@ def analyzeDownloadedGames():
     #print(champRoles)
     return matchesList
         
-gamesList = downloadGames()       
+#gamesList = downloadGames()       
 #matchesList = analyzeDownloadedGames()
-#itemsMatrix = findFingerprint(summonerID)
+itemsMatrix = findFingerprint(summonerID)
     
 #for match in matches["matches"]:
 #    if(count > limit):
