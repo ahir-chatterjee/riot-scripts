@@ -87,11 +87,14 @@ def scrapePBData():
                 print("Picked", end=" ")
             champs = data.text.split(", ")
             for champ in champs:
-                print(champ, end=" ")
-                if(ban):
-                    champDict[champ]["bans"] += 1
-                else:
-                    champDict[champ]["picks"] += 1
+                if(not champ == "None"):
+                    if(champ == "sejunai"):
+                        champ = "Sejuani"
+                    print(champ, end=" ")
+                    if(ban):
+                        champDict[champ]["bans"] += 1
+                    else:
+                        champDict[champ]["picks"] += 1
             print()
             count += 1
     print((str)(len(validRows)) + " games")
@@ -156,7 +159,7 @@ def scrapeMHData():
                     cStats[i][statName] = d.text
                     i += 1
     
-    driver.close()
+    #driver.close()
     return cStats
 
 def writeSheet(champDict):
@@ -171,24 +174,17 @@ def writeSheet(champDict):
     wb.save("Stats.xls")
         
 def main():
-    cStats = scrapeMHData()
-    for champ in cStats:
-        champ["player"] = input("Who played " + champ["champion"] + "? ")
-    
-    print()
-    
-    for champ in cStats:
-        print(champ["champion"] + " played by " + champ["player"])
-        
-    print()
-    saveInfo("output.json",cStats)
-    print()
-    
-    for player in cStats:
-        for stat in player:
-            print(stat + ": " + player[stat])
-        print()
-    #writeSheet(champDict)
+#    cStats = scrapeMHData()
+#    for champ in cStats:
+#        champ["player"] = input("Who played " + champ["champion"] + "? ")
+#    
+#    print()
+#    
+#    for champ in cStats:
+#        print(champ["champion"] + " played by " + champ["player"])
+    champDict = scrapePBData()
+    writeSheet(champDict)
+
     
 if __name__ == '__main__':
     main()
