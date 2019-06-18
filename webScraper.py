@@ -25,11 +25,10 @@ def loadFile(fileName):
             tempList = json.loads(tempStr)
     return tempList
 
-def saveInfo(fileName, data, version):
+def saveInfo(fileName, data):
     wrapperList = []
     with open(fileName,'w') as outfile:
         #for obj in data:
-        wrapperList.append(version)
         wrapperList.append(data)
         json.dump(wrapperList,outfile)
         print(fileName + " saved successfully.")
@@ -185,6 +184,7 @@ def main():
 #        print(champ["champion"] + " played by " + champ["player"])
     champDict = scrapePBData()
     writeSheet(champDict)
+
     
 if __name__ == '__main__':
     main()
