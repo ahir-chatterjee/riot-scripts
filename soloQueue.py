@@ -31,7 +31,7 @@ def saveInfo(fileName, data, version):
         json.dump(wrapperList,outfile)
         print(fileName + " saved successfully.")
 
-api_key = "?api_key=" + "RGAPI-ba489987-6fdd-4439-8a6d-cb212ee56a29"
+api_key = "?api_key=" + "RGAPI-f5ccdc31-e6fd-4063-b4a8-37a73b33b237"
 
 versionInfo = json.loads(requests.get("https://ddragon.leagueoflegends.com/realms/na.json" + api_key).text)["n"]
 champVersion = versionInfo["champion"]
@@ -293,6 +293,7 @@ def findFingerprint(summonerID):
     flashD = 0
     flashF = 0
     matchesChecked = 0
+    inventories = []
     for match in matchesList:
         matchesChecked += 1
         pID = 0
@@ -313,11 +314,14 @@ def findFingerprint(summonerID):
         #gather item data for all the items in the inventory
         for p in match["participants"]:
             if(p["participantId"] == pID):
+                inventory = []
                 for num in range(0,7):
                     itemName = p["stats"]["item"+(str)(num)]
+                    inventory.append(itemName)
                     uniqueItems[itemName] = 1
                     itemSlots[num].append(itemName)
-                    
+                inventories.append(inventory)
+                
     #repeat above process for suspected smurf account
     matchesList = loadedInfo[1]
     summonerID = ssummonerId
@@ -326,6 +330,7 @@ def findFingerprint(summonerID):
     sflashD = 0
     sflashF = 0
     smatchesChecked = 0
+    sinventories = []
     
     for match in matchesList:
         smatchesChecked += 1
@@ -339,9 +344,13 @@ def findFingerprint(summonerID):
             sflashF += 1
         for p in match["participants"]:
             if(p["participantId"] == pID):
+                inventory = []
                 for num in range(0,7):
                     suniqueItems[p["stats"]["item"+(str)(num)]] = 1
                     sitemSlots[num].append(p["stats"]["item"+(str)(num)])
+                    inventory.append(p["stats"]["item"+(str)(num)])
+                sinventories.append(inventory)
+            
                     
     print(flashD,flashF,sflashD,sflashF)
     
@@ -353,6 +362,18 @@ def findFingerprint(summonerID):
         
     itemsMatrix = {}
     sitemsMatrix = {}
+    
+    for num in range(0,len(inventories)):
+        for i in range(0,len(inventories[num])):
+            item = inventories[num][i]
+            if((str)(item) in itemInfo["data"]):
+                inventories[num][i] = itemInfo["data"][(str)(item)]["name"]
+                
+    for num in range(0,len(sinventories)):
+        for i in range(0,len(sinventories[num])):
+            item = sinventories[num][i]
+            if((str)(item) in itemInfo["data"]):
+                sinventories[num][i] = itemInfo["data"][(str)(item)]["name"]
     
     for item in uniqueItems:
         if((str)(item) in itemInfo["data"]):
@@ -390,8 +411,16 @@ def findFingerprint(summonerID):
     trinketRanks = {}
     strinketRanks = {}
     for trinket in trinkets:
-        trinketRanks[itemsMatrix[trinket][7]] = trinket
-        strinketRanks[sitemsMatrix[trinket][7]] = trinket
+#        trinketRanks[itemsMatrix[trinket][7]] = trinket
+#        strinketRanks[sitemsMatrix[trinket][7]] = trinket
+        if(trinket in itemsMatrix):
+            trinketRanks[itemsMatrix[trinket][7]] = trinket
+        else:
+            trinketRanks[0] = trinket
+        if(trinket in sitemsMatrix):
+            strinketRanks[sitemsMatrix[trinket][7]] = trinket
+        else:
+            strinketRanks[0] = trinket
     trinketsSame = True
     if(not (trinketRanks[max(trinketRanks)] == strinketRanks[max(strinketRanks)] and trinketRanks[min(trinketRanks)] == strinketRanks[min(strinketRanks)])):
         trinketsSame = False
@@ -399,54 +428,77 @@ def findFingerprint(summonerID):
         
     #variables that need to be tuned
     sampleSizeLimit = 11
-    highLimit = .68
+    alwaysSizeLimit = 20
+    alwaysLimit = .95
+    highLimit = .5
     lowLimit = .12
     #variables that need to be tuned
     
     itemsDifferent = []
+    reallyBad = []
     itemsBadlyDifferent = []
     matchingItems = []
     itemsToRemove = []
+    #different classifications of active item uses
+    
     for item in itemsMatrix:
         if item not in trinkets:
-            hasHL = False
             if item in sitemsMatrix:
-                if itemsMatrix[item][7] >= sampleSizeLimit and sitemsMatrix[item][7] >= sampleSizeLimit:
-                    for num in range(0,7):
-                        if((itemsMatrix[item][num] >= highLimit or sitemsMatrix[item][num] >= highLimit) and not hasHL):
+                if itemsMatrix[item][7] >= alwaysSizeLimit or sitemsMatrix[item][7] >= alwaysSizeLimit:
+                    for num in range(0,6):
+                        if(itemsMatrix[item][num] >= alwaysLimit or sitemsMatrix[item][num] >= alwaysLimit):
+                            if(not(itemsMatrix[item][num] >= alwaysLimit and sitemsMatrix[item][num] >= alwaysLimit)):
+                                reallyBad.append(item)
+    print("REally bad")
+    print(reallyBad)
+    
+    for item in itemsMatrix:
+        if item not in trinkets:    #if the item isn't a trinket
+            hasHL = False           #high limit does not exist yet, so false
+            if item in sitemsMatrix:#if the item is in both matrices, check it
+                if itemsMatrix[item][7] >= sampleSizeLimit and sitemsMatrix[item][7] >= sampleSizeLimit:    #high enough sample size of item present
+                    for num in range(0,6):
+                        if((itemsMatrix[item][num] >= highLimit or sitemsMatrix[item][num] >= highLimit) and not hasHL):    
+                            #if one of the item matrices has a majority usage item slot
                             if(not (sitemsMatrix[item][num] >= highLimit and itemsMatrix[item][num] >= highLimit)):
-                                #print(item)
-                                #itemsDifferent.append(item)
+                                #if they don't both have a high limit in the same slot, they are badly different
                                 itemsBadlyDifferent.append(item)
                                 hasHL = True
                             else:
+                                #if they do, they are the same
                                 hasHL = True
                                 matchingItems.append(item)
                     if(not hasHL):
-                        for num in range(0,7):
+                        #if no high limit was found (item is spread out), try lower limits
+                        for num in range(0,6):
                             i = itemsMatrix[item][num]
                             si = sitemsMatrix[item][num]
                             if((i < highLimit and i >= lowLimit) or (si < highLimit and si >= lowLimit)):
+                                #if between high and low limit
                                 if(not((i < highLimit and i >= lowLimit) and (si < highLimit and si >= lowLimit))):
+                                    #if the other element is not also between hugh and low limit
                                     if(not item in itemsDifferent):
+                                        #add it to itemsDifferent if it already hasn't been added
                                         itemsDifferent.append(item)
                                         if(item in matchingItems):
+                                            #if the item was already present in matching items, remove it
                                             matchingItems.remove(item)
                                 elif(not item in matchingItems and (not item in itemsDifferent)):
+                                    #otherwise put it into matchingItems
                                     matchingItems.append(item)
-                else:
-                    itemsToRemove.append(item)
+            else:
+                #if not in the other matrix, remove the item as it's worthless
+                itemsToRemove.append(item)
+                    
     for item in itemsToRemove:
         itemsMatrix.pop(item)
-        sitemsMatrix.pop(item)
+    #remove all of the extra items    
+        
     itemsToRemove = []
-    iterateList = []
+    iterateList = itemsDifferent + itemsBadlyDifferent
     diffItemsMatrix = {}
-    for item in itemsDifferent:
-        iterateList.append(item)
-    for item in itemsBadlyDifferent:
-        iterateList.append(item)
-    print(itemsDifferent, itemsBadlyDifferent)
+    
+    #looping through items different and looking at ranking item slots
     for item in iterateList:
         ranks = []
         sranks = []
@@ -463,11 +515,13 @@ def findFingerprint(summonerID):
                 if(smaxVal < sitemsMatrix[item][num] and not num in sranks):
                     smaxVal = sitemsMatrix[item][num]
                     smaxPos = num
-            ranks.append(maxPos)
-            sranks.append(smaxPos)
+            if(not maxVal == 0):
+                ranks.append(maxPos)
+            if(not smaxVal == 0):
+                sranks.append(smaxPos)
         different = False
         print(item, ranks, sranks)
-        for num in range(0,7):
+        for num in range(0,min(len(ranks),len(sranks))):
             if(ranks[num] != sranks[num]):
                 different = True
         if(not different):
@@ -483,42 +537,7 @@ def findFingerprint(summonerID):
     print(itemsBadlyDifferent)
     itemsChecked = min(len(itemsMatrix),len(sitemsMatrix))-3
     print(itemsChecked)
-    #print(matchingItems)
-    #print(highLimitItems)
-    #print(lowLimitItems)
-                #if(p["timeline"]["lane"] == lane):
-                    #totalGames += 1 
-#    print(totalGames)
-#    printDict = {}
-#    for item in uniqueItems:
-#        if((str)(item) in itemInfo["data"]):
-#            if("Active" in itemInfo["data"][(str)(item)]["tags"]):
-#                print(itemInfo["data"][(str)(item)]["name"] + ": ",end="")
-#                totalCount = 0
-#                counts = []
-#                for num in range(0,7):
-#                    count = 0
-#                    for oItem in itemSlots[num]:
-#                        if(item == oItem):
-#                            count += 1
-#                    counts.append(count)
-#                    totalCount += count
-#                    if num == 0:
-#                        printDict[itemInfo["data"][(str)(item)]["name"]] = []
-#                    printDict[itemInfo["data"][(str)(item)]["name"]].append(count)
-#                    print((str)(count) + " ",end="")
-#                #for count in counts:
-#                #    print((str)(round((count/totalCount)*100,1)) + " ",end="")
-#                print()
-#    for key in printDict:
-#        print(key)
-#    for num in range(0,7):
-#        print()
-#        for key in printDict:
-#            print(printDict[key][num])
-                
-    #print(uniqueItems)
-    #print(flashD, flashF)    
+
     matchNumber = 100
     itemNumber = 6
     relatedChance = 1
@@ -553,7 +572,17 @@ def findFingerprint(summonerID):
         relatedChance /= 2
         print("WARNING: low sample size of items in common.")
     print((str)(round(relatedChance*100,1)) + "% chance that " + summonerName + " and " + smurf + " are the same.")
-    return [itemsMatrix, sitemsMatrix]
+    
+    for num in range(0,len(inventories)):
+        searchItem = "Zhonya's Hourglass"
+        found = False
+        for item in inventories[num]:
+            if(item == searchItem):
+                found = True
+        if not found:
+            inventories[num] = []
+    
+    return [itemsMatrix, sitemsMatrix, inventories, sinventories]
     
     
 def analyzeDownloadedGames():
