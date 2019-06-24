@@ -25,11 +25,10 @@ def loadFile(fileName):
             tempList = json.loads(tempStr)
     return tempList
 
-def saveInfo(fileName, data, version):
+def saveInfo(fileName, data):
     wrapperList = []
     with open(fileName,'w') as outfile:
         #for obj in data:
-        wrapperList.append(version)
         wrapperList.append(data)
         json.dump(wrapperList,outfile)
         print(fileName + " saved successfully.")
@@ -335,6 +334,7 @@ def writeInhouseSheet(url,num):
     wb.save("inhouse" + (str)(num) + ".xls")
         
 def main():
+<<<<<<< HEAD
     urls = ["https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3069625106/42251275?tab=overview",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3069714444/217845797?tab=overview",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3069671355/42251275?tab=overview",
@@ -359,6 +359,19 @@ def main():
         count += 1
 #    champDict = scrapePBData()
 #    writeSheet(champDict)
+=======
+#    cStats = scrapeMHData()
+#    for champ in cStats:
+#        champ["player"] = input("Who played " + champ["champion"] + "? ")
+#    
+#    print()
+#    
+#    for champ in cStats:
+#        print(champ["champion"] + " played by " + champ["player"])
+    champDict = scrapePBData()
+    writeSheet(champDict)
+
+>>>>>>> dbb91da4a602b4b0c27c8cac26c517a7c32b7295
     
 if __name__ == '__main__':
     main()
