@@ -97,3 +97,32 @@ for name in name_to_summ:
             leaderboard.append([name,highRank,highAcc,highScore])
     print(name + " " + highRank + " " + highAcc)
     
+rank = 1
+for person in leaderboard:
+    output = ""
+    output += (str)(rank) + ")"
+    while(len(output)<5):
+        output += " "
+    output += person[0]
+    while(len(output)<14):
+        output += " "
+    output += "- "
+    ladder = person[1].split(" ")
+    output += ladder[0] + " "
+    if(ladder[0] == "M" or ladder[0] == "C"):
+        output += " "
+    spaces = 3-len(ladder[1])
+    while(spaces>0):
+        output += " "
+        spaces -= 1
+    output += ladder[1]
+    output += " LP - "
+    spaces = 16-len(person[2])
+    output += person[2]
+    while(spaces>0):
+        output += " "
+        spaces -= 1
+    output += "- "
+    print(output)
+    rank += 1
+    
