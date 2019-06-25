@@ -8,7 +8,7 @@ Created on Sat May 18 16:17:16 2019
 import requests
 import json
 
-api_key = "RGAPI-2513966d-feeb-400f-a112-8e839d224c62"
+api_key = "RGAPI-61da307c-9b94-491b-acf6-a6fe12c56b2f"
 name_to_summ = {     "Ahir":["CrusherCake","Drunk Skeleton"],
                      "Andy":["Lolicept","Yuaru"],
                      "Austin":["GG EVOS NO RE"],
@@ -97,6 +97,27 @@ for name in name_to_summ:
             leaderboard.append([name,highRank,highAcc,highScore])
     print(name + " " + highRank + " " + highAcc)
     
+cur = open("currentLeaderboard.txt","w")
+prev = open("prevLeaderboard.txt","r")
+prevDict = {}
+numDict = {"1":"one",
+           "2":"two",
+           "3":"three",
+           "4":"four",
+           "5":"five",
+           "6":"six",
+           "7":"seven",
+           "8":"eight",
+           "9":"nine",
+           "10":"ten",
+           "10+":"over ten"
+           }
+for line in prev:
+    fields = line.split("-")
+    iden = fields[0].split(")")
+    iden[1] = iden[1].strip()
+    prevDict[iden[1]] = (int)(iden[0])
+    #print(iden)
 rank = 1
 for person in leaderboard:
     output = ""
@@ -123,6 +144,19 @@ for person in leaderboard:
         output += " "
         spaces -= 1
     output += "- "
+    change = prevDict[person[0]] - rank
+    move = "up"
+    if(change < 0):
+        move = "down"
+        change = change*-1
+    if(change > 10):
+        output += move + " by " + numDict["10+"]
+    if(change > 0):
+        output += move + " by " + numDict[(str)(change)]
     print(output)
     rank += 1
+    
+cur.close()
+prev.close()    
+
     
