@@ -331,6 +331,7 @@ def findFingerprint(summonerID):
     sflashF = 0
     smatchesChecked = 0
     sinventories = []
+    timeline = json.loads(requests.get("https://na1.api.riotgames.com/lol/match/v4/timelines/by-match/" + (str)(matchesList[0]["gameId"]) + api_key).text)
     
     for match in matchesList:
         smatchesChecked += 1
@@ -351,8 +352,8 @@ def findFingerprint(summonerID):
                     inventory.append(p["stats"]["item"+(str)(num)])
                 sinventories.append(inventory)
             
-                    
-    print(flashD,flashF,sflashD,sflashF)
+    print()
+    print("Flashes: ",flashD,flashF,sflashD,sflashF)
     
     #check flashes
     flashSame = True
@@ -424,12 +425,12 @@ def findFingerprint(summonerID):
     trinketsSame = True
     if(not (trinketRanks[max(trinketRanks)] == strinketRanks[max(strinketRanks)] and trinketRanks[min(trinketRanks)] == strinketRanks[min(strinketRanks)])):
         trinketsSame = False
-        print("Trinkets are different.")
+        #print("Trinkets are different.")
         
     #variables that need to be tuned
     sampleSizeLimit = 11
     alwaysSizeLimit = 20
-    alwaysLimit = .95
+    alwaysLimit = .93
     highLimit = .5
     lowLimit = .12
     #variables that need to be tuned
@@ -445,18 +446,19 @@ def findFingerprint(summonerID):
         if item not in trinkets:
             if item in sitemsMatrix:
                 if itemsMatrix[item][7] >= alwaysSizeLimit or sitemsMatrix[item][7] >= alwaysSizeLimit:
-                    for num in range(0,6):
-                        if(itemsMatrix[item][num] >= alwaysLimit or sitemsMatrix[item][num] >= alwaysLimit):
-                            if(not(itemsMatrix[item][num] >= alwaysLimit and sitemsMatrix[item][num] >= alwaysLimit)):
-                                reallyBad.append(item)
-    print("REally bad")
-    print(reallyBad)
-    
+                    if itemsMatrix[item][7] >= sampleSizeLimit and sitemsMatrix[item][7] >= sampleSizeLimit:
+                        for num in range(0,6):
+                            if(itemsMatrix[item][num] >= alwaysLimit or sitemsMatrix[item][num] >= alwaysLimit):
+                                if(not(itemsMatrix[item][num] >= alwaysLimit and sitemsMatrix[item][num] >= alwaysLimit)):
+                                    reallyBad.append(item)
+    #print("Really bad: ", reallyBad)
+    itemsChecked = []
     for item in itemsMatrix:
         if item not in trinkets:    #if the item isn't a trinket
             hasHL = False           #high limit does not exist yet, so false
             if item in sitemsMatrix:#if the item is in both matrices, check it
                 if itemsMatrix[item][7] >= sampleSizeLimit and sitemsMatrix[item][7] >= sampleSizeLimit:    #high enough sample size of item present
+                    itemsChecked.append(item)
                     for num in range(0,6):
                         if((itemsMatrix[item][num] >= highLimit or sitemsMatrix[item][num] >= highLimit) and not hasHL):    
                             #if one of the item matrices has a majority usage item slot
@@ -533,31 +535,24 @@ def findFingerprint(summonerID):
             itemsDifferent.remove(item)
         else:
             itemsBadlyDifferent.remove(item)
-    print(itemsDifferent)
-    print(itemsBadlyDifferent)
-    itemsChecked = min(len(itemsMatrix),len(sitemsMatrix))-3
-    print(itemsChecked)
+    print("Different: ",itemsDifferent)
+    print("Badly Different: ",itemsBadlyDifferent)
+    print("Items Checked: ",itemsChecked)
+    print("Really Bad: ",reallyBad)
 
     matchNumber = 100
-    itemNumber = 6
+    itemNumber = 2
     relatedChance = 1
-    if itemsChecked == 0:
-        itemsChecked = 1
-    itemRatio = 1/itemsChecked
+    if len(itemsChecked) == 0:
+        itemsChecked.append("none")
+    itemRatio = 1/len(itemsChecked)
     if(not flashSame):
         relatedChance = 0.0
-    if(len(itemsBadlyDifferent) > 0):
+    if(len(itemsBadlyDifferent) > 0 or len(reallyBad) > 0):
         relatedChance = 0.0
     if(relatedChance > 0):
-        if(not trinketsSame):
-            relatedChance -= .2
-            for item in itemsDifferent:
-                relatedChance -= itemRatio*1.5
-#            for item in itemsBadlyDifferent:
-#                relatedChance -= itemRatio*4
-        else:
-            for item in itemsDifferent:
-                relatedChance -= itemRatio
+        for item in itemsDifferent:
+            relatedChance -= itemRatio
 #            for item in itemsBadlyDifferent:
 #                relatedChance -= itemRatio*3.5
     if(relatedChance < 0):
@@ -568,13 +563,13 @@ def findFingerprint(summonerID):
     if(smatchesChecked < matchNumber):
         relatedChance /= 2
         print("WARNING: low sample size of matches on " + smurf + ".")
-    if(not itemsChecked > itemNumber):
+    if(not len(itemsChecked) > itemNumber):
         relatedChance /= 2
         print("WARNING: low sample size of items in common.")
     print((str)(round(relatedChance*100,1)) + "% chance that " + summonerName + " and " + smurf + " are the same.")
     
     for num in range(0,len(inventories)):
-        searchItem = "Zhonya's Hourglass"
+        searchItem = "Stopwatch"
         found = False
         for item in inventories[num]:
             if(item == searchItem):
@@ -582,7 +577,7 @@ def findFingerprint(summonerID):
         if not found:
             inventories[num] = []
     
-    return [itemsMatrix, sitemsMatrix, inventories, sinventories]
+    return [itemsMatrix, sitemsMatrix, inventories, sinventories, itemsChecked, matchesList, timeline]
     
     
 def analyzeDownloadedGames():
@@ -641,9 +636,9 @@ def analyzeDownloadedGames():
     #print(champRoles)
     return matchesList
         
-#gamesList = downloadGames()       
+gamesList = downloadGames()       
 #matchesList = analyzeDownloadedGames()
-itemsMatrix = findFingerprint(summonerID)
+#itemsMatrix = findFingerprint(summonerID)
     
 #for match in matches["matches"]:
 #    if(count > limit):

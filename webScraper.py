@@ -334,8 +334,10 @@ def writeInhouseSheet(url,num):
     wb.save("inhouse" + (str)(num) + ".xls")
         
 def main():
-<<<<<<< HEAD
-    urls = ["https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3069625106/42251275?tab=overview",
+    urls = ["https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3073743987/42251275?tab=overview",
+            "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3073743695/42251275?tab=stats",
+            "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3073743294/42251275?tab=overview",
+            "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3069625106/42251275?tab=overview",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3069714444/217845797?tab=overview",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3069671355/42251275?tab=overview",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3069671091/42251275?tab=overview",
@@ -357,21 +359,18 @@ def main():
     for url in urls:
         writeInhouseSheet(url,count)
         count += 1
-#    champDict = scrapePBData()
-#    writeSheet(champDict)
-=======
-#    cStats = scrapeMHData()
-#    for champ in cStats:
-#        champ["player"] = input("Who played " + champ["champion"] + "? ")
-#    
-#    print()
-#    
-#    for champ in cStats:
-#        print(champ["champion"] + " played by " + champ["player"])
     champDict = scrapePBData()
     writeSheet(champDict)
-
->>>>>>> dbb91da4a602b4b0c27c8cac26c517a7c32b7295
+    cStats = scrapeMHData()
+    for champ in cStats:
+        champ["player"] = input("Who played " + champ["champion"] + "? ")
+    
+    print()
+    
+    for champ in cStats:
+        print(champ["champion"] + " played by " + champ["player"])
+#    champDict = scrapePBData()
+#    writeSheet(champDict)
     
 if __name__ == '__main__':
     main()
