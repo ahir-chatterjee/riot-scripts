@@ -46,7 +46,7 @@ def createChampDict():
         print("champs.txt version up to date")
     else:
         champInfo = json.loads(requests.get("http://ddragon.leagueoflegends.com/cdn/" + champVersion + "/data/en_US/champion.json" + api_key).text)
-        saveInfo("champs.txt",champInfo,champVersion)
+        saveInfo("champs.txt",champInfo)
         print("champs.txt updated")
     
     champDict = {}
@@ -55,10 +55,10 @@ def createChampDict():
         
     return champDict
 
-def scrapePBData():
-    region = input("Enter region to scrape (i.e. LCS, LEC, LCK, LPL): ")
-    validWeeks = input("Enter valid weeks (i.e 1, 2, 3): ").split(", ")
-    url = 'https://lol.gamepedia.com/Special:RunQuery/PickBanHistory?PBH%5Bpage%5D=' + region + '%202019%20Summer&PBH%5Btextonly%5D=Yes&pfRunQueryFormName=PickBanHistory'
+def scrapePBData(url):
+    #region = input("Enter region to scrape (i.e. LCS, LEC, LCK, LPL): ")
+    #validWeeks = input("Enter valid weeks (i.e 1, 2, 3): ").split(", ")
+    #url = 'https://lol.gamepedia.com/Special:RunQuery/PickBanHistory?PBH%5Bpage%5D=' + region + '%202019%20Summer&PBH%5Btextonly%5D=Yes&pfRunQueryFormName=PickBanHistory'
     response = requests.get(url)
     content = BeautifulSoup(response.content,"html.parser")
     
@@ -334,7 +334,7 @@ def writeInhouseSheet(url,num):
     wb.save("inhouse" + (str)(num) + ".xls")
         
 def main():
-    urls = ["https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3073743987/42251275?tab=overview",
+    """urls = ["https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3073743987/42251275?tab=overview",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3073743695/42251275?tab=stats",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3073743294/42251275?tab=overview",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3069625106/42251275?tab=overview",
@@ -354,21 +354,22 @@ def main():
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3063640252/42251275?tab=overview",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3061707387/42251275?tab=overview",
             "https://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/3061707090/42251275?tab=overview"
-            ]
-    count = 0
-    for url in urls:
-        writeInhouseSheet(url,count)
-        count += 1
-    champDict = scrapePBData()
-    writeSheet(champDict)
-    cStats = scrapeMHData()
-    for champ in cStats:
-        champ["player"] = input("Who played " + champ["champion"] + "? ")
-    
-    print()
-    
-    for champ in cStats:
-        print(champ["champion"] + " played by " + champ["player"])
+            ]"""
+    scrapePBData("https://lol.gamepedia.com/Special:RunQuery/PickBanHistory?PBH%5Bpage%5D=LPL%202020%20Summer%20Playoffs&PBH%5Btextonly%5D=Yes&pfRunQueryFormName=PickBanHistory")
+##    count = 0
+##    for url in urls:
+##        writeInhouseSheet(url,count)
+##        count += 1
+##    champDict = scrapePBData()
+##    writeSheet(champDict)
+##    cStats = scrapeMHData()
+##    for champ in cStats:
+##        champ["player"] = input("Who played " + champ["champion"] + "? ")
+##    
+##    print()
+##    
+##    for champ in cStats:
+##        print(champ["champion"] + " played by " + champ["player"])
 #    champDict = scrapePBData()
 #    writeSheet(champDict)
     
